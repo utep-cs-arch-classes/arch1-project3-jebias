@@ -1,22 +1,21 @@
-all:
-	(cd timerLib; make install)
-	(cd lcdLib; make install)
-	(cd shapeLib; make install)
-	(cd circleLib; make install)
-	(cd p2swLib; make install)
-	(cd p2sw-demo; make)
-	(cd shape-motion-demo; make)
 
-doc:
-	rm -rf doxygen_docs
-	doxygen Doxyfile
+# makfile configuration
+CPU             	= msp430g2553
+CFLAGS          	= -mmcu=${CPU} -Os -I../h
+LDFLAGS		= -L../lib -L/opt/ti/msp430_gcc/include/ 
+
+#switch the compiler (for the internal make rules)
+CC              = msp430-elf-gcc
+AS              = msp430-elf-gcc -mmcu=${CPU} -c
+
+all:main.elf
+
+#additional rules for files
+main.elf: ${COMMON_OBJECTS} main.o init.o buzzer.o  
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ -lTimer -lLcd -lShape -lCircle -lp2sw 
+
+load: main.elf
+	mspdebug rf2500 "prog $^"
+
 clean:
-	(cd timerLib; make clean)
-	(cd lcdLib; make clean)
-	(cd shapeLib; make clean)
-	(cd p2swLib; make clean)
-	(cd p2sw-demo; make clean)
-	(cd shape-motion-demo; make clean)
-	(cd circleLib; make clean)
-	rm -rf lib h
-	rm -rf doxygen_docs/*
+	rm -f *.o *.elf
